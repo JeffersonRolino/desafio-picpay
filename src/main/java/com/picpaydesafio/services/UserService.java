@@ -2,10 +2,12 @@ package com.picpaydesafio.services;
 
 import com.picpaydesafio.domain.user.User;
 import com.picpaydesafio.domain.user.UserType;
+import com.picpaydesafio.dtos.UserDTO;
 import com.picpaydesafio.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -31,5 +33,15 @@ public class UserService {
 
     public void saveUser(User user){
         this.userRepository.save(user);
+    }
+
+    public User createUser(UserDTO userDTO) {
+        User newUser = new User(userDTO);
+        this.saveUser(newUser);
+        return newUser;
+    }
+
+    public List<User> getAllUsers() {
+        return this.userRepository.findAll();
     }
 }
