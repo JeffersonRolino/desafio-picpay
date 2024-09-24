@@ -16,27 +16,34 @@ import java.util.Objects;
 
 @Service
 public class TransactionService {
-    private UserService userService;
-    private TransactionRepository transactionRepository;
-    private RestTemplate restTemplate;
+    private final UserService userService;
+    private final TransactionRepository transactionRepository;
+    private final RestTemplate restTemplate;
+    private NotificationService notificationService;
 
-    public TransactionService(UserService userService, TransactionRepository transactionRepository, RestTemplate restTemplate) {
+    public TransactionService(
+            UserService userService,
+            TransactionRepository transactionRepository,
+            RestTemplate restTemplate,
+            NotificationService notificationService
+    ) {
         this.userService = userService;
         this.transactionRepository = transactionRepository;
         this.restTemplate = restTemplate;
+        this.notificationService = notificationService;
     }
 
-    public void createTransaction(TransactionDTO transactionDTO) throws Exception {
+    public Transaction createTransaction(TransactionDTO transactionDTO) throws Exception {
         User sender = userService.findUserById(transactionDTO.senderId());
         User receiver = userService.findUserById(transactionDTO.receiverId());
 
         userService.validateTransaction(sender, transactionDTO.value());
 
-        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
+//        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
 
-        if(!isAuthorized){
-            throw  new Exception("Transação não autorizada");
-        }
+//        if(!isAuthorized){
+//            throw  new Exception("Transação não autorizada");
+//        }
 
         Transaction transaction = new Transaction();
         transaction.setAmount(transactionDTO.value());
@@ -50,14 +57,19 @@ public class TransactionService {
         this.transactionRepository.save(transaction);
         this.userService.saveUser(sender);
         this.userService.saveUser(receiver);
+
+        this.notificationService.sendNotification(sender, "Transação realizada com sucesso");
+        this.notificationService.sendNotification(receiver, "Transação realizada com sucesso");
+
+        return transaction;
     }
 
-    public boolean authorizeTransaction(User sender, BigDecimal value){
-        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
-
-        if(authorizationResponse.getStatusCode() == HttpStatus.OK && Objects.requireNonNull(authorizationResponse.getBody()).get("status") == "success"){
-            return true;
-        }
-        return false;
-    }
+//    public boolean authorizeTransaction(User sender, BigDecimal value){
+//        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
+//
+//        if(authorizationResponse.getStatusCode() == HttpStatus.OK && Objects.requireNonNull(authorizationResponse.getBody()).get("status") == "success"){
+//            return true;
+//        }
+//        return false;
+//    }
 }
