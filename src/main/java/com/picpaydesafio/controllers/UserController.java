@@ -25,6 +25,17 @@ public class UserController {
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
+    /**
+     * Utility method to facilitate register multiple users at once
+     * @param usersDTO
+     * @return
+     */
+    @PostMapping(value = "/register")
+    public ResponseEntity<List<User>> registerMultipleUsers(@RequestBody List<UserDTO> usersDTO){
+        List<User> users = this.userService.registerMultipleUsers(usersDTO);
+        return new ResponseEntity<>(users, HttpStatus.CREATED);
+    }
+
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers(){
         List<User> users = this.userService.getAllUsers();
