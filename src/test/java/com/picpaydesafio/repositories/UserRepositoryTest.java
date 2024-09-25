@@ -57,10 +57,9 @@ class UserRepositoryTest {
     }
 
 
-    private User createUser(UserDTO userDTO){
+    private void createUser(UserDTO userDTO){
         User newUser = new User(userDTO);
         this.entityManager.persist(newUser);
         this.entityManager.close();
-        return newUser;
     }
 }
