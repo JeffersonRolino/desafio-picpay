@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -18,7 +17,7 @@ public class TransactionService {
     private final UserService userService;
     private final TransactionRepository transactionRepository;
     private final RestTemplate restTemplate;
-    private NotificationService notificationService;
+    private final NotificationService notificationService;
 
     public TransactionService(
             UserService userService,
@@ -38,7 +37,7 @@ public class TransactionService {
 
         userService.validateTransaction(sender, transactionDTO.value());
 
-        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
+        boolean isAuthorized = this.authorizeTransaction();
 
         if(!isAuthorized){
             throw  new Exception("Transação não autorizada");
@@ -63,7 +62,7 @@ public class TransactionService {
         return transaction;
     }
 
-    public boolean authorizeTransaction(User sender, BigDecimal value){
+    public boolean authorizeTransaction(){
         ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
 
         return authorizationResponse.getStatusCode() == HttpStatus.OK;
