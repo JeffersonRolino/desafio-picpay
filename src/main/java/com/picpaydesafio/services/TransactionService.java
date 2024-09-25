@@ -12,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class TransactionService {
@@ -39,11 +38,11 @@ public class TransactionService {
 
         userService.validateTransaction(sender, transactionDTO.value());
 
-//        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
+        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
 
-//        if(!isAuthorized){
-//            throw  new Exception("Transação não autorizada");
-//        }
+        if(!isAuthorized){
+            throw  new Exception("Transação não autorizada");
+        }
 
         Transaction transaction = new Transaction();
         transaction.setAmount(transactionDTO.value());
@@ -64,12 +63,9 @@ public class TransactionService {
         return transaction;
     }
 
-//    public boolean authorizeTransaction(User sender, BigDecimal value){
-//        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
-//
-//        if(authorizationResponse.getStatusCode() == HttpStatus.OK && Objects.requireNonNull(authorizationResponse.getBody()).get("status") == "success"){
-//            return true;
-//        }
-//        return false;
-//    }
+    public boolean authorizeTransaction(User sender, BigDecimal value){
+        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
+
+        return authorizationResponse.getStatusCode() == HttpStatus.OK;
+    }
 }
