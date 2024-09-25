@@ -4,31 +4,27 @@ import com.picpaydesafio.domain.transaction.Transaction;
 import com.picpaydesafio.domain.user.User;
 import com.picpaydesafio.dtos.TransactionDTO;
 import com.picpaydesafio.repositories.TransactionRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Service
 public class TransactionService {
     private final UserService userService;
     private final TransactionRepository transactionRepository;
-    private final RestTemplate restTemplate;
     private final NotificationService notificationService;
+    private final AuthorizationService authorizationService;
 
     public TransactionService(
             UserService userService,
             TransactionRepository transactionRepository,
-            RestTemplate restTemplate,
-            NotificationService notificationService
+            NotificationService notificationService,
+            AuthorizationService authorizationService
     ) {
         this.userService = userService;
         this.transactionRepository = transactionRepository;
-        this.restTemplate = restTemplate;
         this.notificationService = notificationService;
+        this.authorizationService = authorizationService;
     }
 
     public Transaction createTransaction(TransactionDTO transactionDTO) throws Exception {
@@ -37,7 +33,7 @@ public class TransactionService {
 
         userService.validateTransaction(sender, transactionDTO.value());
 
-        boolean isAuthorized = this.authorizeTransaction();
+        boolean isAuthorized = authorizationService.authorizeTransaction();
 
         if(!isAuthorized){
             throw  new Exception("Transação não autorizada");
@@ -60,11 +56,5 @@ public class TransactionService {
         this.notificationService.sendNotification(receiver, "Transação realizada com sucesso");
 
         return transaction;
-    }
-
-    public boolean authorizeTransaction(){
-        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
-
-        return authorizationResponse.getStatusCode() == HttpStatus.OK;
     }
 }
